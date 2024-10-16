@@ -1,58 +1,299 @@
-﻿# MultiLanguage
+Hello every body 
+in this Project i will explain how to Enable Multi Language in Abp.io FramWork 
+At First Go to MultiLanguage.Domain.Shared (Shared Layer)
+and Add this two main interfaces
+the first one with name IEntityTranslation 
 
-## About this solution
+    public interface IEntityTranslation
+    {
+        string Language { get; set; }
+    }
 
-This is a layered startup solution based on [Domain Driven Design (DDD)](https://docs.abp.io/en/abp/latest/Domain-Driven-Design) practises. All the fundamental ABP modules are already installed. Check the [Application Startup Template](https://docs.abp.io/en/commercial/latest/startup-templates/application/index) documentation for more info.
+    public interface IEntityTranslation<TEntity> : IEntityTranslation<TEntity, int>, IEntityTranslation
+    {
+    }
 
-### Pre-requirements
+    public interface IEntityTranslation<TEntity, TPrimaryKeyOfMultiLingualEntity> : IEntityTranslation
+    {
+        TEntity Core { get; set; }
 
-* [.+ SDK](https://dotnet.microsoft.com/download/dotnet)
-* [Node v18 or 20](https://nodejs.org/en)
+        TPrimaryKeyOfMultiLingualEntity CoreId { get; set; }
+    }
+and the second one with name IMultiLingualEntity
 
-### Configurations
+    public interface IMultiLingualEntity<TTranslation> where TTranslation : class, IEntityTranslation
+    {
+        ICollection<TTranslation> Translations { get; set; }
+    }
 
-The solution comes with a default configuration that works out of the box. However, you may consider to change the following configuration before running your solution:
+after that go to Application Layer MultiLanguage.Application and add this three Classes
+first one with name AutoMapExtensions
 
-** Check the `ConnectionStrings` in `appsettings.json` files under the `MultiLanguage.HttpApi.Host` and `MultiLanguage.DbMigrator` projects and change it if you need.
-**
-### Before running the application
+    public static class AutoMapExtensions
+    {
+        public static CreateMultiLingualMapResult<TMultiLingualEntity, TTranslation, TDestination> CreateMultiLingualMap<TMultiLingualEntity, TMultiLingualEntityPrimaryKey, TTranslation, TTranslationPrimaryKey, TDestination>(
+        this IMapperConfigurationExpression configuration,
+        MultiLingualMapContext multiLingualMapContext,
+        bool fallbackToParentCultures = false)
+        where TMultiLingualEntity : IMultiLingualEntity<TTranslation>
+        where TTranslation : class, IEntityTranslation<TMultiLingualEntity, TMultiLingualEntityPrimaryKey>, IEntity<TTranslationPrimaryKey>
+        {
+            return new CreateMultiLingualMapResult<TMultiLingualEntity, TTranslation, TDestination>
+            {
+                TranslationMap = configuration.CreateMap<TTranslation, TDestination>(),
+                EntityMap = configuration.CreateMap<TMultiLingualEntity, TDestination>().BeforeMap(delegate (TMultiLingualEntity source, TDestination destination, ResolutionContext context)
+                {
+                    if (!source.Translations.IsNullOrEmpty())
+                    {
+                        TTranslation val = source.Translations.FirstOrDefault((pt) => pt.Language == CultureInfo.CurrentUICulture.Name);
+                        if (val != null)
+                        {
+                            context.Mapper.Map(val, destination);
+                        }
+                        else
+                        {
+                            if (fallbackToParentCultures)
+                            {
+                                val = GeTranslationBasedOnCulturalRecursive<TMultiLingualEntity, TMultiLingualEntityPrimaryKey, TTranslation>(CultureInfo.CurrentUICulture.Parent, source.Translations, 0);
+                                if (val != null)
+                                {
+                                    context.Mapper.Map(val, destination);
+                                    return;
+                                }
+                            }
 
-* Run `abp install-libs` command on your solution folder to install client-side package dependencies. This step is automatically done when you create a new solution with ABP CLI. However, you should run it yourself if you have first cloned this solution from your source control, or added a new client-side package dependency to your solution.
-* Run `MultiLanguage.DbMigrator` to create the initial database. This should be done in the first run. It is also needed if a new database migration is added to the solution later.
+                            string defaultLanguage = multiLingualMapContext.SettingManager.GetOrNullDefaultAsync("Abp.Localization.DefaultLanguageName").GetAwaiter().GetResult();
+                            val = source.Translations.FirstOrDefault((pt) => pt.Language == defaultLanguage);
+                            if (val != null)
+                            {
+                                context.Mapper.Map(val, destination);
+                            }
+                            else
+                            {
+                                val = source.Translations.FirstOrDefault();
+                                if (val != null)
+                                {
+                                    context.Mapper.Map(val, destination);
+                                }
+                            }
+                        }
+                    }
+                })
+            };
+        }
 
-#### Generating a Signing Certificate
+        private static TTranslation GeTranslationBasedOnCulturalRecursive<TMultiLingualEntity, TMultiLingualEntityPrimaryKey, TTranslation>(
+            CultureInfo culture,
+            ICollection<TTranslation> translations,
+            int currentDepth)
+            where TTranslation : class, IEntityTranslation<TMultiLingualEntity, TMultiLingualEntityPrimaryKey>
+        {
+            if (culture == null || culture.Name.IsNullOrWhiteSpace() || translations.IsNullOrEmpty() || currentDepth > 5)
+            {
+                return null;
+            }
 
-In the production environment, you need to use a production signing certificate. ABP Framework sets up signing and encryption certificates in your application and expects an `authserver.pfx` file in your application.
+            return translations.FirstOrDefault((pt) => pt.Language.Equals(culture.Name, StringComparison.OrdinalIgnoreCase))
+                   ?? GeTranslationBasedOnCulturalRecursive<TMultiLingualEntity, TMultiLingualEntityPrimaryKey, TTranslation>(culture.Parent, translations, currentDepth + 1);
+        }
 
-To generate a signing certificate, you can use the following command:
+        public static CreateMultiLingualMapResult<TMultiLingualEntity, TTranslation, TDestination> CreateMultiLingualMap<TMultiLingualEntity, TTranslation, TDestination>(
+        this IMapperConfigurationExpression configuration,
+        MultiLingualMapContext multiLingualMapContext,
+        bool fallbackToParentCultures = false)
+        where TMultiLingualEntity : IMultiLingualEntity<TTranslation>
+        where TTranslation : class, IEntityTranslation<TMultiLingualEntity, int>, IEntity<int>
+        {
+            return configuration.CreateMultiLingualMap<TMultiLingualEntity, int, TTranslation, int, TDestination>(multiLingualMapContext, fallbackToParentCultures);
+        }
 
-```bash
-dotnet dev-certs https -v -ep authserver.pfx -p 00000000-0000-0000-0000-000000000000
-```
+    }
+Second one With Name CreateMultiLingualMapResult
 
-> `00000000-0000-0000-0000-000000000000` is the password of the certificate, you can change it to any password you want.
+    public class CreateMultiLingualMapResult<TMultiLingualEntity, TTranslation, TDestination>
+    {
+       public IMappingExpression<TTranslation, TDestination> TranslationMap { get; set; }
 
-It is recommended to use **two** RSA certificates, distinct from the certificate(s) used for HTTPS: one for encryption, one for signing.
+       public IMappingExpression<TMultiLingualEntity, TDestination> EntityMap { get; set; }
+    }
 
-For more information, please refer to: https://documentation.openiddict.com/configuration/encryption-and-signing-credentials.html#registering-a-certificate-recommended-for-production-ready-scenarios
+and third one with Name MultiLingualMapContext 
+ 
+    public class MultiLingualMapContext
+    {
+     public ISettingManager SettingManager { get; set; }
 
-> Also, see the [Configuring OpenIddict](https://docs.abp.io/en/abp/latest/Deployment/Configuring-OpenIddict#production-environment) documentation for more information.
+     public MultiLingualMapContext(ISettingManager settingManager)
+     {
+         SettingManager = settingManager;
+     }
+    } 
+Note* You Can Put it directly in Application Layer or in Folder in Application Layer.
 
-### Solution structure
+After All that Now we can Create Country Entity and it's own Translations
+in Domain Layer we can Define the Country that inherited From IMultiLingualEntity and pass CountryTranslation Entity Like that
 
-This is a layered monolith application that consists of the following applications:
+     public class Country : FullAuditedEntity<int>, IMultiLingualEntity<CountryTranslation>
+    {
 
-* `MultiLanguage.DbMigrator`: A console application which applies the migrations and also seeds the initial data. It is useful on development as well as on production environment.
-** `MultiLanguage.HttpApi.Host`: ASP.NET Core API application that is used to expose the APIs to the clients.
-* `angular`: Angular application.
+      [JsonIgnore]
+      public virtual ICollection<CountryTranslation> Translations { get; set; }
+    } 
+and don't forget to add [JsonIgnore] DataAnnotion to make JsonCycle Stop !
+now we need to Create CountryTranslation that Inherited From IEntityTranslation and Pass Country Entity Like that 
 
-## Deploying the application
+    public class CountryTranslation : FullAuditedEntity<int>, IEntityTranslation<Country>
+    {
 
-Deploying an ABP application is not different than deploying any .NET or ASP.NET Core application. However, there are some topics that you should care about when you are deploying your applications. You can check ABP's [Deployment documentation](https://docs.abp.io/en/abp/latest/Deployment/Index) and ABP Commercial's [Deployment documentation](https://docs.abp.io/en/commercial/latest/startup-templates/application/deployment?UI=MVC&DB=EF&Tiered=No) before deploying your application.
+      public string Name { get; set; }
+      public int CoreId { get; set; }
+      [ForeignKey(nameof(CoreId))]
+      [JsonIgnore]
+      public virtual Country Core { get; set; }
 
-### Additional resources
 
-You can see the following resources to learn more about your solution and the ABP Framework:
+      public string Language { get; set; }
+    }
 
-* [Web Application Development Tutorial](https://docs.abp.io/en/commercial/latest/tutorials/book-store/part-1)
-* [Application Startup Template](https://docs.abp.io/en/commercial/latest/startup-templates/application/index)
+now in Contrast Layer we Will Created ICountryAppService And Dto Classes and the new one here is CountryTranslationDto which has Name And Language Properties 
+
+     public class CountryTranslationDto
+     {
+       /// <summary>
+       /// Name
+       /// </summary>
+       public string Name { get; set; }
+       /// <summary>
+       /// Language
+       /// </summary>
+       public string Language { get; set; }
+     }
+
+now Create CreateCountryDto
+ 
+       public class CreateCountryDto : IValidatableObject
+      {
+       public List<CountryTranslationDto> Translations { get; set; }
+
+       public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+       {
+           if (Translations is null || Translations.Count < 2)
+           {
+               yield return new ValidationResult("Translations must contain at least two elements", new[] { nameof(Translations) });
+           }
+       }
+     }
+as you see we add a list of CountryTranslationDto and we have add Validation for it. this deepend on your system anyway if you need to enter more than one language 
+now Create CountryDto Class 
+
+     public class CountryDto : FullAuditedEntityDto<int>
+    {
+     public string Name { get; set; }
+     public List<CountryTranslationDto> Translations { get; set; }
+    }
+
+as you see there are Name and List of CountryTranslationDto , let me explain if you have added in CountryTranslation more that one Property like (Name , Description, Address) you need to add it in Dto and the AutoMapper will return it as language of Application 
+now we will go to Application Layer and Add CountryAppService like that
+
+       public class CountryAppService : CrudAppService<Country, CountryDto, int, PagedCountryResultRequestDto, CreateCountryDto, UpdateCountryDto>, ICountryAppService
+    {
+
+        public CountryAppService(IRepository<Country, int> repository) : base(repository)
+        {
+        }
+        public override async Task<CountryDto> GetAsync(int id)
+        {
+            var country = Repository.WithDetailsAsync(x => x.Translations).Result.Where(c => c.Id == id)
+                    .FirstOrDefault() ??
+                    throw new EntityNotFoundException(typeof(Country), id);
+            return ObjectMapper.Map<Country, CountryDto>(country);
+
+
+        }
+        public override Task<PagedResultDto<CountryDto>> GetListAsync(PagedCountryResultRequestDto input)
+        {
+            return base.GetListAsync(input);
+        }
+        protected override Task<IQueryable<Country>> CreateFilteredQueryAsync(PagedCountryResultRequestDto input)
+        {
+            return Repository.WithDetailsAsync(x => x.Translations);
+
+        }
+    }
+there are some of Dto i have created without Ecplain it here (PagedCountryResultRequestDto, UpdateCountryDto)
+and of course when you create New table to save translations you need to include it to retrieve the data !
+
+now we need to Configure the Mapping and add CustomMapper 
+in the Module of Application Layer Create static Class with name CustomDtoMapper 
+
+     public static class CustomDtoMapper
+    {
+    public static void CreateMappings(IAbpAutoMapperConfigurationContext configuration, MultiLingualMapContext context)
+    {
+
+        #region Country
+        // Country Translation Configuration
+
+
+        configuration.MapperConfiguration.CreateMultiLingualMap<Country, CountryTranslation, CountryDto>(context).TranslationMap
+     .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name));
+        #endregion
+    }
+    }
+in this class there is a Method Which Configure the Mapping amd return the name  using AutoMapper 
+and if you have another Dto class and you need to add name and Translations for it repeat this code and replca the CountryDto with your new Dto Like this 
+
+          configuration.MapperConfiguration.CreateMultiLingualMap<Country, CountryTranslation, YourNewDto>(context).TranslationMap
+     .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name));
+        
+
+now we need to Configure CustomMapper in ConfigureServices in Application Module like this 
+   
+     public class MultiLanguageApplicationModule : AbpModule
+     {
+    public ISettingManager SettingManager { get; set; }
+    public override void ConfigureServices(ServiceConfigurationContext context)
+    {
+        Configure<AbpAutoMapperOptions>(options =>
+        {
+            options.AddMaps<MultiLanguageApplicationModule>();
+            options.Configurators.Add(cfg =>
+            {
+                CustomDtoMapper.CreateMappings(cfg, new MultiLingualMapContext(SettingManager));
+            });
+        });
+    }
+    }
+the last step it add Mapper For Classes in Application Layer like this under Countries Folder 
+
+        public class CountryMapProfile : Profile
+    {
+       public CountryMapProfile()
+       {
+           CreateMap<CreateCountryDto, Country>().ReverseMap();
+           CreateMap<UpdateCountryDto, Country>().ReverseMap();
+           CreateMap<CountryTranslation, CountryTranslationDto>().ReverseMap();
+
+       }
+    }
+
+now we can Run the Application and don't forget to add migration for database.
+post first Country Name at two Language (English and Arabic)
+
+![image](https://github.com/user-attachments/assets/28a25ddc-61fe-43b6-b196-ce53f50107e2)
+
+after added it let me get it from database and my language now is English !
+
+![image](https://github.com/user-attachments/assets/3702637e-25d0-4068-a5b3-0b237b5de5ed)
+
+now let me Change language to Arabic and call api again 
+
+![image](https://github.com/user-attachments/assets/b313b11d-c7c4-4cf9-a49a-7b124e819c47)
+
+this api was getById
+let us try GetAll ! 
+
+
+![image](https://github.com/user-attachments/assets/ca5b6e81-f6f1-4499-8549-38d9e681f9d7)
+
+it's work Successfully!
