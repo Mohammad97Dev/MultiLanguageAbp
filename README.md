@@ -285,6 +285,8 @@ post first Country Name at two Language (English and Arabic)
 
 after added it let me get it from database and my language now is English !
 
+![image](https://github.com/user-attachments/assets/35d40611-5231-4e5a-a242-fbb7d87ea9a7)
+
 
 now let me Change language to Arabic and call api again 
 
