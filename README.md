@@ -4,6 +4,8 @@ At First Go to MultiLanguage.Domain.Shared (Shared Layer)
 and Add this two main interfaces
 the first one with name IEntityTranslation 
 
+     namespace MultiLanguage.Multi_Lingual
+    {
     public interface IEntityTranslation
     {
         string Language { get; set; }
@@ -19,11 +21,16 @@ the first one with name IEntityTranslation
 
         TPrimaryKeyOfMultiLingualEntity CoreId { get; set; }
     }
+    }
+
 and the second one with name IMultiLingualEntity
 
+     namespace MultiLanguage.Multi_Lingual
+    {
     public interface IMultiLingualEntity<TTranslation> where TTranslation : class, IEntityTranslation
     {
         ICollection<TTranslation> Translations { get; set; }
+    }
     }
 
 after that go to Application Layer MultiLanguage.Application and add this three Classes
