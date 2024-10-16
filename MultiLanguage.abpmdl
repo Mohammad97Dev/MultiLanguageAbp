@@ -1,0 +1,85 @@
+{
+  "template": "app",
+  "imports": {
+    "Volo.Abp.Account": {
+      "version": "8.2.1",
+      "isInstalled": true
+    },
+    "Volo.Abp.OpenIddict": {
+      "version": "8.2.1",
+      "isInstalled": true
+    },
+    "Volo.Abp.Identity": {
+      "version": "8.2.1",
+      "isInstalled": true
+    },
+    "Volo.Abp.TenantManagement": {
+      "version": "8.2.1",
+      "isInstalled": true
+    }
+  },
+  "folders": {
+    "items": {
+      "src": {},
+      "test": {}
+    }
+  },
+  "packages": {
+    "MultiLanguage.Application": {
+      "path": "src/MultiLanguage.Application/MultiLanguage.Application.abppkg",
+      "folder": "src"
+    },
+    "MultiLanguage.Application.Tests": {
+      "path": "test/MultiLanguage.Application.Tests/MultiLanguage.Application.Tests.abppkg",
+      "folder": "test"
+    },
+    "MultiLanguage.Domain.Shared": {
+      "path": "src/MultiLanguage.Domain.Shared/MultiLanguage.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "MultiLanguage.Application.Contracts": {
+      "path": "src/MultiLanguage.Application.Contracts/MultiLanguage.Application.Contracts.abppkg",
+      "folder": "src"
+    },
+    "MultiLanguage.HttpApi": {
+      "path": "src/MultiLanguage.HttpApi/MultiLanguage.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "MultiLanguage.HttpApi.Client": {
+      "path": "src/MultiLanguage.HttpApi.Client/MultiLanguage.HttpApi.Client.abppkg",
+      "folder": "src"
+    },
+    "MultiLanguage.EntityFrameworkCore.Tests": {
+      "path": "test/MultiLanguage.EntityFrameworkCore.Tests/MultiLanguage.EntityFrameworkCore.Tests.abppkg",
+      "folder": "test"
+    },
+    "MultiLanguage.EntityFrameworkCore": {
+      "path": "src/MultiLanguage.EntityFrameworkCore/MultiLanguage.EntityFrameworkCore.abppkg",
+      "folder": "src"
+    },
+    "MultiLanguage.TestBase": {
+      "path": "test/MultiLanguage.TestBase/MultiLanguage.TestBase.abppkg",
+      "folder": "test"
+    },
+    "MultiLanguage.Domain.Tests": {
+      "path": "test/MultiLanguage.Domain.Tests/MultiLanguage.Domain.Tests.abppkg",
+      "folder": "test"
+    },
+    "MultiLanguage.HttpApi.Client.ConsoleTestApp": {
+      "path": "test/MultiLanguage.HttpApi.Client.ConsoleTestApp/MultiLanguage.HttpApi.Client.ConsoleTestApp.abppkg",
+      "folder": "test"
+    },
+    "MultiLanguage.DbMigrator": {
+      "path": "src/MultiLanguage.DbMigrator/MultiLanguage.DbMigrator.abppkg",
+      "folder": "src"
+    },
+    "MultiLanguage.HttpApi.Host": {
+      "path": "src/MultiLanguage.HttpApi.Host/MultiLanguage.HttpApi.Host.abppkg",
+      "folder": "src"
+    },
+    "MultiLanguage.Domain": {
+      "path": "src/MultiLanguage.Domain/MultiLanguage.Domain.abppkg",
+      "folder": "src"
+    }
+  }
+}

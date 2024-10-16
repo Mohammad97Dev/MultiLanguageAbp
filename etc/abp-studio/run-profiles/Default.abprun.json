@@ -1,0 +1,17 @@
+﻿{
+  "applications": {
+    "MultiLanguage.HttpApi.Host": {
+      "type": "dotnet-project",
+      "launchUrl": "https://localhost:44320",
+      "path": "../../../src/MultiLanguage.HttpApi.Host/MultiLanguage.HttpApi.Host.csproj",
+      "kubernetesService": ".*-httpapihost$"  
+    },
+    "MultiLanguage.Angular": {
+      "type": "cli",
+      "workingDirectory": "../../../angular",
+      "startCommand": "./start.ps1",
+      "launchUrl": "http://localhost:4200",
+      "kubernetesService": ".*-angular$"        
+    }
+  }
+}
