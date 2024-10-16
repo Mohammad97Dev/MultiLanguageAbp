@@ -1,5 +1,5 @@
-Hello every body 
-in this Project i will explain how to Enable Multi Language in Abp.io FramWork 
+Hello everyone!
+In this project, we'll walk you through enabling multi-language functionality in the Abp.io framework.
 At First Go to MultiLanguage.Domain.Shared (Shared Layer)
 and Add this two main interfaces
 the first one with name IEntityTranslation 
