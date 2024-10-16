@@ -280,20 +280,20 @@ the last step it add Mapper For Classes in Application Layer like this under Cou
 now we can Run the Application and don't forget to add migration for database.
 post first Country Name at two Language (English and Arabic)
 
-![image](https://github.com/user-attachments/assets/28a25ddc-61fe-43b6-b196-ce53f50107e2)
+![image](https://github.com/user-attachments/assets/954ffa49-5f41-423f-ac84-6f2bf84d82a4)
+
 
 after added it let me get it from database and my language now is English !
 
-![image](https://github.com/user-attachments/assets/3702637e-25d0-4068-a5b3-0b237b5de5ed)
 
 now let me Change language to Arabic and call api again 
 
-![image](https://github.com/user-attachments/assets/b313b11d-c7c4-4cf9-a49a-7b124e819c47)
+![image](https://github.com/user-attachments/assets/c806b686-9758-4220-a0ab-06f7d5cdc994)
 
 this api was getById
 let us try GetAll ! 
 
 
-![image](https://github.com/user-attachments/assets/ca5b6e81-f6f1-4499-8549-38d9e681f9d7)
+![image](https://github.com/user-attachments/assets/9edbfa63-564a-4c3a-9e08-a9525d0ca2a1)
 
 it's work Successfully!
